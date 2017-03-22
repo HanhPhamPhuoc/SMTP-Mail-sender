@@ -5,7 +5,19 @@
  */
 package smtpsender;
 
+import java.awt.Image;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.activation.FileDataSource;
+import javax.mail.Address;
+import javax.mail.BodyPart;
+import javax.mail.internet.MimeMultipart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.PasswordAuthentication;
@@ -13,6 +25,9 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeBodyPart;
+import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
 /**
@@ -49,6 +64,7 @@ public class SMTP extends javax.swing.JFrame {
         receiverLabel = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         receiverAreaField = new javax.swing.JTextArea();
+        jLabel3 = new javax.swing.JLabel();
         subjectLabel = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
@@ -57,6 +73,9 @@ public class SMTP extends javax.swing.JFrame {
         subjectField = new javax.swing.JTextField();
         sendBtn = new javax.swing.JButton();
         statusLabel = new javax.swing.JLabel();
+        insertImageBtn = new javax.swing.JButton();
+        imgLabel = new javax.swing.JLabel();
+        imgPathLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -64,9 +83,11 @@ public class SMTP extends javax.swing.JFrame {
 
         passwordLabel.setText("Password");
 
-        passwordField.setText("jPasswordField1");
-
-        usernameField.setText("Username");
+        passwordField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                passwordFieldActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -104,15 +125,17 @@ public class SMTP extends javax.swing.JFrame {
 
         senderLabel.setText("Sender :");
 
-        senderField.setText("abc@gmail.com");
+        senderField.setText("ABC");
 
         receiverLabel.setText("Receiver: ");
 
         receiverAreaField.setColumns(20);
         receiverAreaField.setRows(5);
-        receiverAreaField.setText("aaa@gmail.com");
+        receiverAreaField.setText("a@gmail.com,b@gmail.com");
         jScrollPane1.setViewportView(receiverAreaField);
         receiverAreaField.getAccessibleContext().setAccessibleName("receiverField");
+
+        jLabel3.setText("( Seperate by \",\" per mail  )");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -129,7 +152,9 @@ public class SMTP extends javax.swing.JFrame {
                             .addComponent(receiverLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 55, Short.MAX_VALUE)
                             .addComponent(senderLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(senderField)))
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(senderField)
+                            .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -140,7 +165,9 @@ public class SMTP extends javax.swing.JFrame {
                     .addComponent(senderField, javax.swing.GroupLayout.DEFAULT_SIZE, 27, Short.MAX_VALUE)
                     .addComponent(senderLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(receiverLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(receiverLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -151,8 +178,9 @@ public class SMTP extends javax.swing.JFrame {
         jLabel2.setText("Content: ");
 
         contentField.setColumns(20);
+        contentField.setLineWrap(true);
         contentField.setRows(5);
-        contentField.setText("- Hello this is an example mail.");
+        contentField.setText("- Hello Mr ABC, we are from company XYZ and we would like to recommend you a product of us, that is boiroi duck.\nBoiroi-duck is an npm module that utlizes a python machine learning recommendation engine to give easy access to customer purchase recommendations. Product-Recommender exists on the npm registry under the name \"product-recommender.\" This repo will have the up to date version of my python recommendation engine, but if you wish to investigate the earlier development of the code, please check out my python-recommender github repo. To express your opinions on Product-Recommender, please send an email to abc@gmail.com or submit a github issues request. A demo application of Product-Recommender named Product-Demo currently exists on npm. To check out that demo application, install Product-Demo with npm.\nFor more information please look at the image below.\n\nSincerely\nABC");
         jScrollPane2.setViewportView(contentField);
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
@@ -161,23 +189,25 @@ public class SMTP extends javax.swing.JFrame {
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 354, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING))
+                .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 202, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 231, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         subjectField.setText("Test");
 
+        sendBtn.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         sendBtn.setText("Send");
         sendBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -187,32 +217,56 @@ public class SMTP extends javax.swing.JFrame {
 
         statusLabel.setText("Starting....");
 
+        insertImageBtn.setText("Insert image");
+        insertImageBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                insertImageBtnActionPerformed(evt);
+            }
+        });
+
+        imgLabel.setText("Image's name ");
+
+        imgPathLabel.setText("Image's path");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(subjectLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(subjectField, javax.swing.GroupLayout.PREFERRED_SIZE, 318, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(subjectField)
+                        .addContainerGap())
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 147, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(107, 107, 107)))
-                .addContainerGap(67, Short.MAX_VALUE))
+                        .addGap(186, 186, 186))))
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+            .addGroup(layout.createSequentialGroup()
                 .addGap(21, 21, 21)
-                .addComponent(statusLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 361, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(sendBtn)
-                .addGap(155, 155, 155))
+                .addComponent(statusLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 317, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(imgPathLabel)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(imgLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 218, Short.MAX_VALUE)
+                                .addGap(44, 44, 44))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(insertImageBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addComponent(sendBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(102, 102, 102))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -231,13 +285,19 @@ public class SMTP extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(statusLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 25, Short.MAX_VALUE))
+                        .addComponent(statusLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(sendBtn)
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addGap(11, 11, 11))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 29, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(insertImageBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(sendBtn))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(imgLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 19, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(imgPathLabel)
+                        .addGap(6, 6, 6))))
         );
 
         pack();
@@ -245,72 +305,122 @@ public class SMTP extends javax.swing.JFrame {
     public static void infoBox(String infoMessage, String titleBar) {
         JOptionPane.showMessageDialog(null, infoMessage, titleBar, JOptionPane.INFORMATION_MESSAGE);
     }
+
+    public static String textToHtmlConverter(String plain) {
+        String str = "(?i)\\b((?:https?://|www\\d{0,3}[.]|[a-z0-9.\\-]+[.][a-z]{2,4}/)(?:[^\\s()<>]+|\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\))+(?:\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\)|[^\\s`!()\\[\\]{};:\'\".,<>?«»“”‘’]))";
+        Pattern patt = Pattern.compile(str);
+        Matcher matcher = patt.matcher(plain);
+        plain = matcher.replaceAll("<a href=\"$1\">$1</a>");
+        return plain;
+    }
     private void sendBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendBtnActionPerformed
         // Recipient's email ID needs to be mentioned.
-        String to = receiverAreaField.getText();//change accordingly
-        // Sender's email ID needs to be mentioned
-        String from = senderField.getText();//change accordingly
-        String tempUserName = usernameField.getText();//change accordingly
-        String tempPassWord = passwordField.getText();//change accordingly
-        while (receiverAreaField.getText() == null || senderField.getText() == null
-                || usernameField.getText() == null || passwordField.getText() == null) {
+        if (receiverAreaField.getText().equals("") || senderField.getText().equals("")
+                || usernameField.getText().equals("") || passwordField.getText().equals("")) {
             infoBox("Xin vui lòng điền đầy đủ các thông tin !", "Lỗi !");
-            // Recipient's email ID needs to be mentioned.
-            to = receiverAreaField.getText();
+        } else if (subjectField.getText().equals("") || contentField.getText().equals("")) {
+            infoBox("Vui lòng kiểm tra lại content và subject !", "Lỗi !");
+        } else {
+            statusLabel.setText("Setting the fields of the message...");
+            String to = receiverAreaField.getText();//change accordingly
             // Sender's email ID needs to be mentioned
-            from = senderField.getText();
-            tempUserName = usernameField.getText();
-            tempPassWord = passwordField.getText();
-        }
-        final String userName = tempUserName;
-        final String passWord = tempPassWord;
-        // Assuming you are sending email through smtp.gmail.com
-        String host = "smtp.gmail.com";
+            String from = senderField.getText();//change accordingly
+            String tempUserName = usernameField.getText();//change accordingly
+            String tempPassWord = passwordField.getText();//change accordingly
 
-        Properties props = new Properties();
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.host", host);
-        props.put("mail.smtp.port", "587");
+            final String userName = tempUserName;
+            final String passWord = tempPassWord;
+            // Assuming you are sending email through smtp.gmail.com
+            String host = "smtp.gmail.com";
 
-        // Get the Session object.
-        Session session = Session.getInstance(props,
-                new javax.mail.Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(userName, passWord);
-            }
-        });
+            Properties props = new Properties();
+            props.put("mail.smtp.auth", "true");
+            props.put("mail.smtp.starttls.enable", "true");
+            props.put("mail.smtp.host", host);
+            props.put("mail.smtp.port", "587");
 
-        try {
-            // Create a default MimeMessage object.
-            Message message = new MimeMessage(session);
+            // Get the Session object.
+            Session session = Session.getInstance(props,
+                    new javax.mail.Authenticator() {
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(userName, passWord);
+                }
+            });
 
-            // Set From: header field of the header.
-            message.setFrom(new InternetAddress(from));
+            try {
+                // Create a default MimeMessage object.
+                Message message = new MimeMessage(session);
 
-            // Set To: header field of the header.
-            message.setRecipients(Message.RecipientType.TO,
-                    InternetAddress.parse(to));
-            do {
+                // Set From: header field of the header.
+                message.setFrom(new InternetAddress(from));
+
+                // Set To: header field of the header.
+                message.addRecipients(Message.RecipientType.TO,
+                        InternetAddress.parse(to));
+                System.out.println("To  : " + to);
+
                 // Set Subject: header field
                 message.setSubject(subjectField.getText());
                 // Now set the actual message
-                message.setText(contentField.getText());
-                if (subjectField.getText() == null || contentField.getText() == null) {
-                    infoBox("Vui lòng kiểm tra lại content và subject !", "Lỗi !");
-                }
-            } while (subjectField.getText() == null || contentField.getText() == null);
+                //message.setText(contentField.getText());
+                // This mail has 2 part, the BODY and the embedded image
+                MimeMultipart multipart = new MimeMultipart("mixed");
 
-            // Send message
-            Transport.send(message);
-            statusLabel.setText("Sent message successfully....");
-            System.out.println("Sent message successfully....");
+                // first part (the html)
+                BodyPart messageBodyPart = new MimeBodyPart();
+                String text = contentField.getText();
+                messageBodyPart.setContent(text, "text/plain");
+                // add it
+                multipart.addBodyPart(messageBodyPart);
 
-        } catch (MessagingException e) {
-            throw new RuntimeException(e);
+                messageBodyPart = new MimeBodyPart();
+                String htmlText = "<img src=\"cid:image\">";
+                messageBodyPart.setContent(htmlText, "text/html");
+                // add it
+                multipart.addBodyPart(messageBodyPart);
+
+                // second part (the image)
+                messageBodyPart = new MimeBodyPart();
+                DataSource fds = new FileDataSource(imgPathLabel.getText());
+
+                messageBodyPart.setDataHandler(new DataHandler(fds));
+                messageBodyPart.setHeader("Content-ID", "<image>");
+
+                // add image to the multipart
+                multipart.addBodyPart(messageBodyPart);
+
+                // put everything together
+                message.setContent(multipart);
+                // Send message
+                Transport.send(message);
+                statusLabel.setText("Sent message successfully....");
+                System.out.println("Sent message successfully....");
+
+            } catch (MessagingException e) {
+                throw new RuntimeException(e);
+            }
         }
-
     }//GEN-LAST:event_sendBtnActionPerformed
+
+    private void insertImageBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_insertImageBtnActionPerformed
+        final JFileChooser fc = new JFileChooser();
+        int result = fc.showDialog(jPanel1, "Choose your image");
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File file = fc.getSelectedFile();
+            System.out.println("Chosen file is : " + file.getAbsolutePath());
+            imgLabel.setText(file.getName()); // change the label's text and icon
+            imgPathLabel.setText(file.getAbsolutePath());
+            ImageIcon icon = new ImageIcon(file.getAbsolutePath());
+            Image img = icon.getImage();
+            Image newImg = img.getScaledInstance(120, 120, java.awt.Image.SCALE_SMOOTH); // scale it down smoothly
+            icon = new ImageIcon(newImg);
+            imgLabel.setIcon(icon);
+        }
+    }//GEN-LAST:event_insertImageBtnActionPerformed
+
+    private void passwordFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_passwordFieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_passwordFieldActionPerformed
 
     /**
      * @param args the command line arguments
@@ -349,8 +459,12 @@ public class SMTP extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextArea contentField;
+    private javax.swing.JLabel imgLabel;
+    private javax.swing.JLabel imgPathLabel;
+    private javax.swing.JButton insertImageBtn;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
