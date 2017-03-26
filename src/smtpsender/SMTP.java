@@ -20,6 +20,7 @@ import javax.mail.BodyPart;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.NoSuchProviderException;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
@@ -313,6 +314,30 @@ public class SMTP extends javax.swing.JFrame {
         plain = matcher.replaceAll("<a href=\"$1\">$1</a>");
         return plain;
     }
+    public static int checkAccount(String username, String password){
+        Properties props = System.getProperties();
+        props.put("mai.smtp.starttls.enable","true");
+        props.put("mail.smpt.host", "smtp.gmail.com");
+        props.put("mail.smtp.port","587");
+        props.put("mail.smtp.auth","true");
+        props.put("mail.smtp.starttls.required","true");
+        java.security.Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());
+        
+      //get session
+      Session session = Session.getDefaultInstance(props,null);
+      session.setDebug(false);
+     
+          Transport transport;
+        try {
+            transport = session.getTransport("smtp");
+            transport.connect("smtp.gmail.com",username,password);
+        } catch (NoSuchProviderException ex) {
+            return 0;
+        } catch (MessagingException ex) {
+            return 0;
+        }
+        return 1;
+    }
     private void sendBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendBtnActionPerformed
         // Recipient's email ID needs to be mentioned.
         if (receiverAreaField.getText().equals("") || senderField.getText().equals("")
@@ -391,10 +416,16 @@ public class SMTP extends javax.swing.JFrame {
 
                 // put everything together
                 message.setContent(multipart);
+                if(checkAccount(userName, passWord)==1){
                 // Send message
                 Transport.send(message);
                 statusLabel.setText("Sent message successfully....");
                 System.out.println("Sent message successfully....");
+                }
+                else
+                {
+                    infoBox("Tài khoản hoặc mật khẩu không đúng","Lỗi");
+                }
 
             } catch (MessagingException e) {
                 throw new RuntimeException(e);
